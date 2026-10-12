@@ -1,0 +1,628 @@
+/* 场景界面的全局样式、控件反馈、加载遮罩与响应式布局。 */
+
+/* 全局字体、配色与页面尺寸。 */
+:root {
+	--accent: #f4f7f5;
+	--accent-contrast: #111719;
+	font-family: Inter, "Segoe UI", "Microsoft YaHei", sans-serif;
+	color: #f4f7f5;
+	background: #0c1113;
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	overflow: hidden;
+}
+
+button,
+input,
+select {
+	font: inherit;
+}
+
+button {
+	color: inherit;
+}
+
+/* 场景容器与渲染画布。 */
+.weather-shell,
+.scene-stage {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	min-height: 420px;
+	background: #0c1113;
+}
+
+.scene-stage {
+	position: absolute;
+	inset: 0;
+}
+
+.scene-stage canvas {
+	display: block;
+	width: 100%;
+	height: 100%;
+	touch-action: none;
+}
+
+/* 顶部工具栏与玻璃质感按钮。 */
+.topbar {
+	position: fixed;
+	z-index: 999;
+	top: max(24px, env(safe-area-inset-top));
+	right: max(28px, env(safe-area-inset-right));
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 8px;
+	pointer-events: none;
+}
+
+.glass-control {
+	background: rgba(12, 17, 19, 0.76);
+	border: 1px solid rgba(255, 255, 255, 0.16);
+	backdrop-filter: blur(18px);
+}
+
+.icon-button {
+	display: grid;
+	width: 42px;
+	height: 42px;
+	padding: 0;
+	place-items: center;
+	border: 1px solid rgba(255, 255, 255, 0.14);
+	border-radius: 6px;
+	background: transparent;
+	cursor: pointer;
+	pointer-events: auto;
+}
+
+.icon-button:hover,
+.icon-button:focus-visible {
+	border-color: var(--accent);
+	color: var(--accent);
+	outline: none;
+}
+
+.icon-button svg {
+	width: 18px;
+	height: 18px;
+}
+
+.topbar .icon-button {
+	width: 44px;
+	height: 44px;
+	border-color: rgba(255, 255, 255, 0.42);
+	border-radius: 8px;
+	background: rgba(244, 247, 245, 0.22);
+	color: #111719;
+	box-shadow:
+		0 1px 0 rgba(255, 255, 255, 0.28) inset,
+		0 8px 22px rgba(0, 0, 0, 0.28);
+	backdrop-filter: blur(18px) saturate(1.05);
+	-webkit-backdrop-filter: blur(18px) saturate(1.05);
+	transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.topbar .icon-button:hover,
+.topbar .icon-button:focus-visible {
+	background: rgba(244, 247, 245, 0.38);
+	border-color: rgba(255, 255, 255, 0.72);
+	color: #0a0d0e;
+	outline: none;
+}
+
+.topbar .icon-button:active {
+	transform: translateY(1px);
+}
+
+.topbar .icon-button:disabled {
+	background: rgba(244, 247, 245, 0.1);
+	border-color: rgba(255, 255, 255, 0.18);
+	color: rgba(17, 23, 25, 0.4);
+	box-shadow: none;
+	cursor: wait;
+	opacity: 1;
+}
+
+.topbar .icon-button svg {
+	width: 19px;
+	height: 19px;
+	stroke-width: 2.15;
+}
+
+/* 漫游操作提示容器，按步行或驾驶状态切换内容。 */
+.walk-hint {
+	position: fixed;
+	z-index: 20;
+	top: max(24px, env(safe-area-inset-top));
+	left: max(28px, env(safe-area-inset-left));
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	padding: 7px 9px;
+	border: 1px solid rgba(255, 255, 255, 0.42);
+	border-radius: 8px;
+	background: rgba(244, 247, 245, 0.22);
+	box-shadow:
+		0 1px 0 rgba(255, 255, 255, 0.28) inset,
+		0 8px 22px rgba(0, 0, 0, 0.28);
+	backdrop-filter: blur(18px) saturate(1.05);
+	-webkit-backdrop-filter: blur(18px) saturate(1.05);
+	pointer-events: none;
+	user-select: none;
+}
+
+.walk-hint[hidden] {
+	display: none;
+}
+
+.walk-hint[data-hint-mode] .hint-set {
+	display: none;
+}
+
+.walk-hint[data-hint-mode="on-foot"] .hint-set[data-for="on-foot"],
+.walk-hint[data-hint-mode="vehicle"] .hint-set[data-for="vehicle"] {
+	display: contents;
+}
+
+/* 画面右下角的帧率显示。 */
+.fps-counter {
+	position: fixed;
+	z-index: 20;
+	right: max(10px, env(safe-area-inset-right));
+	bottom: max(8px, env(safe-area-inset-bottom));
+	display: flex;
+	align-items: baseline;
+	gap: 4px;
+	color: rgba(244, 247, 245, 0.86);
+	font: 650 12px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-variant-numeric: tabular-nums;
+	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.72);
+	pointer-events: none;
+	user-select: none;
+}
+
+.fps-unit {
+	color: rgba(244, 247, 245, 0.62);
+	font-size: 8px;
+	letter-spacing: 0.06em;
+}
+
+/* 操作提示中的键盘布局与按键反馈。 */
+.hint-movement {
+	display: grid;
+	grid-template-columns: 64px 16px;
+	grid-template-rows: 42px auto;
+	column-gap: 9px;
+	row-gap: 4px;
+	align-items: center;
+	justify-items: center;
+}
+
+.wasd {
+	display: grid;
+	grid-template-columns: repeat(3, 20px);
+	grid-template-rows: repeat(2, 20px);
+	gap: 2px;
+	width: 64px;
+	height: 42px;
+}
+
+.wasd-w {
+	grid-column: 2;
+	grid-row: 1;
+}
+
+.wasd-a {
+	grid-column: 1;
+	grid-row: 2;
+}
+
+.wasd-s {
+	grid-column: 2;
+	grid-row: 2;
+}
+
+.wasd-d {
+	grid-column: 3;
+	grid-row: 2;
+}
+
+.walk-hint kbd {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 20px;
+	height: 20px;
+	padding: 0 5px;
+	border: 1px solid rgba(17, 23, 25, 0.22);
+	border-bottom-color: rgba(17, 23, 25, 0.42);
+	border-radius: 3px;
+	background: rgba(255, 255, 255, 0.42);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 1px 0 rgba(17, 23, 25, 0.18);
+	color: #111719;
+	font: 650 9px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	letter-spacing: 0;
+	transition: background-color 80ms ease, border-color 80ms ease, color 80ms ease, transform 80ms ease;
+}
+
+.wasd kbd {
+	width: 20px;
+	padding: 0;
+}
+
+.walk-hint kbd.is-down {
+	border-color: var(--accent);
+	background: var(--accent);
+	color: var(--accent-contrast);
+	transform: translateY(1px);
+}
+
+.hint-caption {
+	color: rgba(17, 23, 25, 0.78);
+	font-size: 8px;
+}
+
+.hint-actions {
+	display: grid;
+	gap: 3px;
+	padding-left: 10px;
+	border-left: 1px solid rgba(17, 23, 25, 0.16);
+}
+
+.hint-row {
+	display: grid;
+	grid-template-columns: 44px minmax(48px, max-content);
+	align-items: center;
+	gap: 6px;
+	min-height: 20px;
+}
+
+.hint-row kbd {
+	justify-self: end;
+}
+
+.hint-row span {
+	color: rgba(17, 23, 25, 0.78);
+	font-size: 9px;
+	white-space: nowrap;
+}
+
+/* 操作提示中的鼠标按钮、滚轮与视角位移反馈。 */
+.hint-mouse {
+	width: 15px;
+	height: 22px;
+}
+
+.hint-mouse-body {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	border: 1px solid rgba(17, 23, 25, 0.22);
+	border-bottom-color: rgba(17, 23, 25, 0.42);
+	border-radius: 7px 7px 8px 8px;
+	background: rgba(255, 255, 255, 0.42);
+}
+
+.hint-mouse-body::before,
+.hint-mouse-body::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	width: 50%;
+	height: 42%;
+	background: #111719;
+	opacity: 0;
+}
+
+.hint-mouse-body::before {
+	left: 0;
+}
+
+.hint-mouse-body::after {
+	right: 0;
+}
+
+.hint-mouse-wheel {
+	position: absolute;
+	z-index: 1;
+	top: 4px;
+	left: 50%;
+	width: 2px;
+	height: 5px;
+	margin-left: -1px;
+	border-radius: 1px;
+	background: rgba(17, 23, 25, 0.42);
+}
+
+.hint-mouse-nub {
+	position: absolute;
+	top: 64%;
+	left: 50%;
+	width: 4px;
+	height: 4px;
+	margin: -2px 0 0 -2px;
+	border-radius: 50%;
+	background: #111719;
+	transform: translate(var(--look-x, 0), var(--look-y, 0));
+	will-change: transform;
+}
+
+.hint-mouse.is-left .hint-mouse-body::before,
+.hint-mouse.is-right .hint-mouse-body::after {
+	opacity: 0.9;
+}
+
+.hint-mouse.is-wheel .hint-mouse-wheel {
+	background: #111719;
+}
+
+/* 环境面板与天气开关。 */
+.environment-panel {
+	position: fixed;
+	z-index: 1000;
+	top: 0;
+	right: 0;
+	width: min(360px, calc(100vw - 24px));
+	height: 100%;
+	overflow-y: auto;
+	padding: max(28px, env(safe-area-inset-top)) 24px max(28px, env(safe-area-inset-bottom));
+	border-left: 1px solid rgba(255, 255, 255, 0.42);
+	border-radius: 8px 0 0 8px;
+	background: rgba(244, 247, 245, 0.5);
+	color: #111719;
+	box-shadow:
+		0 1px 0 rgba(255, 255, 255, 0.28) inset,
+		0 8px 22px rgba(0, 0, 0, 0.28);
+	backdrop-filter: blur(18px) saturate(1.05);
+	-webkit-backdrop-filter: blur(18px) saturate(1.05);
+	transform: translateX(100%);
+	transition: transform 220ms ease;
+}
+
+.environment-panel.is-open {
+	transform: translateX(0);
+}
+
+.environment-panel > header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding-bottom: 24px;
+	border-bottom: 1px solid rgba(17, 23, 25, 0.12);
+}
+
+.environment-panel .icon-button {
+	color: #111719;
+	border-color: rgba(17, 23, 25, 0.28);
+}
+
+.environment-panel .icon-button:hover,
+.environment-panel .icon-button:focus-visible {
+	border-color: #111719;
+	color: #111719;
+}
+
+.environment-panel h2 {
+	margin: 0;
+	font-size: 20px;
+	font-weight: 650;
+	letter-spacing: 0;
+}
+
+.control-list {
+	display: grid;
+	margin-top: 8px;
+}
+
+.switch-row {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	align-items: center;
+	min-height: 56px;
+	border-bottom: 1px solid rgba(17, 23, 25, 0.1);
+	cursor: pointer;
+}
+
+.switch-row > span,
+.time-control > span {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 13px;
+}
+
+.switch-row svg,
+.time-control svg {
+	width: 16px;
+	height: 16px;
+	color: rgba(17, 23, 25, 0.58);
+}
+
+.switch-row input {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.switch {
+	position: relative;
+	width: 38px;
+	height: 20px;
+	border: 1px solid rgba(17, 23, 25, 0.28);
+	border-radius: 999px;
+	transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.switch::after {
+	content: "";
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	background: #111719;
+	transition: transform 160ms ease;
+}
+
+.switch-row input:checked + .switch {
+	border-color: #111719;
+	background: #111719;
+}
+
+.switch-row input:checked + .switch::after {
+	background: #f4f7f5;
+	transform: translateX(18px);
+}
+
+.switch-row:focus-within {
+	color: #111719;
+}
+
+/* 昼夜时间滑块及动态光照关闭时的禁用状态。 */
+.time-control {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	gap: 16px;
+	margin-top: 26px;
+	transition: opacity 160ms ease;
+}
+
+.time-control output {
+	font-variant-numeric: tabular-nums;
+	font-size: 12px;
+	color: #111719;
+}
+
+.time-control input {
+	grid-column: 1 / -1;
+	width: 100%;
+	accent-color: #111719;
+}
+
+.time-control.is-disabled {
+	opacity: 0.36;
+}
+
+.icon-button:disabled {
+	cursor: wait;
+	opacity: 0.35;
+}
+
+.mode-icon {
+	display: grid;
+	place-items: center;
+}
+
+.mode-icon[hidden] {
+	display: none;
+}
+
+/* 资源加载遮罩、进度条与完成后的淡出状态。 */
+.loading-screen {
+	--loading-alpha: 0.78;
+	position: fixed;
+	z-index: 100;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	background: rgba(9, 14, 16, var(--loading-alpha));
+	backdrop-filter: blur(22px) saturate(0.7);
+	transition: background-color 240ms linear, opacity 600ms ease, visibility 600ms ease;
+}
+
+.loading-screen.is-complete {
+	opacity: 0;
+	visibility: hidden;
+}
+
+.loading-content {
+	width: min(420px, calc(100vw - 48px));
+}
+
+.loading-content h1 {
+	margin: 0 0 18px;
+	font-size: 20px;
+	font-weight: 680;
+	line-height: 1.2;
+	letter-spacing: 0.12em;
+	text-align: center;
+}
+
+.loading-status {
+	margin: 0 0 16px;
+	color: rgba(244, 247, 245, 0.72);
+	font-size: 12px;
+	text-align: center;
+}
+
+.progress-track {
+	height: 3px;
+	overflow: hidden;
+	background: rgba(255, 255, 255, 0.24);
+}
+
+.progress-track span {
+	display: block;
+	width: 0;
+	height: 100%;
+	background: var(--accent);
+}
+
+.loading-screen.has-error .progress-track span {
+	background: #9da5a7;
+}
+
+/* 窄屏布局。 */
+@media (max-width: 720px) {
+	.topbar {
+		top: max(18px, env(safe-area-inset-top));
+		right: max(18px, env(safe-area-inset-right));
+	}
+
+	.walk-hint {
+		top: max(18px, env(safe-area-inset-top));
+		left: max(18px, env(safe-area-inset-left));
+	}
+
+	.loading-content {
+		width: calc(100vw - 44px);
+	}
+
+	.loading-content h1 {
+		font-size: 17px;
+	}
+}
+
+/* 触屏输入下的操作提示。 */
+@media (hover: none) and (pointer: coarse) {
+	.walk-hint {
+		display: none;
+	}
+}
+
+/* 跟随系统设置减少过渡动画。 */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		scroll-behavior: auto !important;
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}

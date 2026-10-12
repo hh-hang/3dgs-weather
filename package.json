@@ -1,0 +1,26 @@
+{
+  "name": "3dgs-weather",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@pmndrs/vanilla": "^1.25.0",
+    "@sparkjsdev/spark": "^2.2.0",
+    "gl-noise": "1.6.1",
+    "lucide": "^0.544.0",
+    "three": "^0.186.0",
+    "three-custom-shader-material": "6.3.7",
+    "three-mesh-bvh": "^0.9.15",
+    "three-player-controller": "^0.6.2"
+  },
+  "devDependencies": {
+    "@types/three": "^0.186.0",
+    "typescript": "~5.7.2",
+    "vite": "^6.0.5"
+  }
+}

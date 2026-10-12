@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0c1113" />
+    <meta
+      name="description"
+      content="3DGS Weather - interactive weather effects for 3D Gaussian Splatting scenes."
+    />
+    <title>3DGS Weather</title>
+    <link rel="icon" type="image/svg+xml" href="/icons/weather.png" />
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <!-- 单页场景界面，控件状态由入口脚本与场景运行时同步。 -->
+    <main id="app" class="weather-shell">
+      <!-- 三维渲染画布的挂载容器。 -->
+      <div id="scene-stage" class="scene-stage" aria-label="湘学联 3DGS 天气场景" data-i18n-aria-label="ui.scene"></div>
+
+      <!-- 环境设置入口与环视、漫游模式切换。 -->
+      <header class="topbar">
+        <button
+          id="settings-trigger"
+          class="icon-button glass-control"
+          type="button"
+          title="环境设置"
+          aria-label="打开环境设置"
+          data-i18n-title="ui.settings"
+          data-i18n-aria-label="ui.openSettings"
+          aria-controls="environment-panel"
+          aria-expanded="false"
+        >
+          <i data-lucide="sliders-horizontal" aria-hidden="true"></i>
+        </button>
+        <button
+          id="mode-toggle"
+          class="icon-button glass-control"
+          type="button"
+          title="漫游模式"
+          aria-label="切换到漫游模式"
+          disabled
+        >
+          <span class="mode-icon" data-for="walk">
+            <i data-lucide="footprints" aria-hidden="true"></i>
+          </span>
+          <span class="mode-icon" data-for="view" hidden>
+            <i data-lucide="orbit" aria-hidden="true"></i>
+          </span>
+        </button>
+      </header>
+
+      <!-- 漫游键鼠提示，按人物当前控制状态选择对应内容。 -->
+      <section id="walk-hint" class="walk-hint" data-hint-mode="on-foot" role="note" aria-label="漫游按键说明" data-i18n-aria-label="ui.controls" hidden>
+        <!-- 步行操作提示。 -->
+        <div class="hint-set" data-for="on-foot">
+          <div class="hint-movement">
+            <div class="wasd" aria-label="W A S D 移动" data-i18n-aria-label="ui.moveKeys">
+              <kbd class="wasd-w">W</kbd>
+              <kbd class="wasd-a">A</kbd>
+              <kbd class="wasd-s">S</kbd>
+              <kbd class="wasd-d">D</kbd>
+            </div>
+            <span class="hint-caption" data-i18n="ui.move">移动</span>
+            <div class="hint-mouse" aria-hidden="true">
+              <div class="hint-mouse-body">
+                <span class="hint-mouse-wheel"></span>
+                <span class="hint-mouse-nub"></span>
+              </div>
+            </div>
+            <span class="hint-caption" data-i18n="ui.look">视角</span>
+          </div>
+          <div class="hint-actions">
+            <div class="hint-row"><kbd>Shift</kbd><span data-i18n="ui.sprint">加速</span></div>
+            <div class="hint-row"><kbd>Space</kbd><span data-i18n="ui.jump">跳跃</span></div>
+            <div class="hint-row"><kbd>E</kbd><span data-i18n="ui.enterVehicle">上车</span></div>
+            <div class="hint-row"><kbd>V</kbd><span data-i18n="ui.switchView">切换视角</span></div>
+            <div class="hint-row"><kbd>F</kbd><span data-i18n="ui.fly">飞行</span></div>
+          </div>
+        </div>
+        <!-- 驾驶操作提示。 -->
+        <div class="hint-set" data-for="vehicle">
+          <div class="hint-movement">
+            <div class="wasd" aria-label="W A S D 驾驶" data-i18n-aria-label="ui.driveKeys">
+              <kbd class="wasd-w">W</kbd>
+              <kbd class="wasd-a">A</kbd>
+              <kbd class="wasd-s">S</kbd>
+              <kbd class="wasd-d">D</kbd>
+            </div>
+            <span class="hint-caption" data-i18n="ui.drive">驾驶</span>
+            <div class="hint-mouse" aria-hidden="true">
+              <div class="hint-mouse-body">
+                <span class="hint-mouse-wheel"></span>
+                <span class="hint-mouse-nub"></span>
+              </div>
+            </div>
+            <span class="hint-caption" data-i18n="ui.look">视角</span>
+          </div>
+          <div class="hint-actions">
+            <div class="hint-row"><kbd>Shift</kbd><span data-i18n="ui.drift">漂移</span></div>
+            <div class="hint-row"><kbd>Space</kbd><span data-i18n="ui.brake">刹车</span></div>
+            <div class="hint-row"><kbd>E</kbd><span data-i18n="ui.exitVehicle">下车</span></div>
+            <div class="hint-row"><kbd>V</kbd><span data-i18n="ui.switchView">切换视角</span></div>
+            <div class="hint-row"><kbd>R</kbd><span data-i18n="ui.reset">复位</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 天气、天空、动态光照与昼夜时间设置。 -->
+      <aside id="environment-panel" class="environment-panel" aria-hidden="true">
+        <header>
+          <h2 data-i18n="ui.settings">环境设置</h2>
+          <button id="settings-close" class="icon-button" type="button" title="关闭" aria-label="关闭环境设置" data-i18n-title="ui.close" data-i18n-aria-label="ui.closeSettings">
+            <i data-lucide="x" aria-hidden="true"></i>
+          </button>
+        </header>
+
+        <div class="control-list">
+          <label class="switch-row">
+            <span><i data-lucide="cloud-rain" aria-hidden="true"></i><span data-i18n="ui.rain">降雨</span></span>
+            <input id="rain-toggle" type="checkbox" />
+            <i class="switch" aria-hidden="true"></i>
+          </label>
+          <label class="switch-row">
+            <span><i data-lucide="snowflake" aria-hidden="true"></i><span data-i18n="ui.snow">降雪</span></span>
+            <input id="snow-toggle" type="checkbox" />
+            <i class="switch" aria-hidden="true"></i>
+          </label>
+          <label class="switch-row">
+            <span><i data-lucide="cloud-sun" aria-hidden="true"></i><span data-i18n="ui.sky">天空</span></span>
+            <input id="sky-toggle" type="checkbox" checked />
+            <i class="switch" aria-hidden="true"></i>
+          </label>
+          <label class="switch-row">
+            <span><i data-lucide="sun" aria-hidden="true"></i><span data-i18n="ui.lighting">光照</span></span>
+            <input id="lighting-toggle" type="checkbox" checked />
+            <i class="switch" aria-hidden="true"></i>
+          </label>
+        </div>
+
+        <label class="time-control" for="time-slider">
+          <span><i data-lucide="clock-3" aria-hidden="true"></i><span data-i18n="ui.time">时间</span></span>
+          <output id="time-output">09:00</output>
+          <input id="time-slider" type="range" min="0" max="1440" step="10" value="540" />
+        </label>
+      </aside>
+
+      <!-- 按固定采样周期更新的画面帧率。 -->
+      <output id="fps-counter" class="fps-counter" aria-label="当前帧率" data-i18n-aria-label="ui.fps">
+        <span id="fps-value">--</span>
+        <span class="fps-unit">FPS</span>
+      </output>
+
+      <!-- 高斯点场景的下载与解码进度，完成后触发开场展开。 -->
+      <section id="loading-screen" class="loading-screen" aria-live="polite">
+        <div class="loading-content">
+          <h1>3DGS Weather</h1>
+          <p id="loading-status" class="loading-status" data-i18n="ui.loading">加载场景…</p>
+          <div class="progress-track" role="progressbar" aria-label="场景加载进度" data-i18n-aria-label="ui.progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <span id="progress-fill"></span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
