@@ -4,9 +4,9 @@
 
 3D Gaussian Splatting (3DGS) renders the scene, while a collision mesh provides collision detection and depth occlusion. The project features rain, snow, puddle reflections, dynamic lighting, and shadows.
 
-[Live demo](https://3dgs-weather-lab.pages.dev/)
+[Live demo](https://3dgs-weather.pages.dev/)
 
-[![Scene preview](public/preview.gif)](https://3dgs-weather-lab.pages.dev/)
+[![Scene preview](public/preview.gif)](https://3dgs-weather.pages.dev/)
 
 ## Features
 

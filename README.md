@@ -4,9 +4,9 @@
 
 以3DGS呈现场景，结合碰撞网格（Mesh）提供碰撞检测与深度遮挡支持，实现雨雪、积水反射、动态光照与阴影效果。
 
-[在线示例](https://3dgs-weather-lab.pages.dev/)
+[在线示例](https://3dgs-weather.pages.dev/)
 
-[![场景预览](public/preview.gif)](https://3dgs-weather-lab.pages.dev/)
+[![场景预览](public/preview.gif)](https://3dgs-weather.pages.dev/)
 
 ## 功能
 
